@@ -1,0 +1,32 @@
+Python GUI Program for Contact/Address Book Generator
+
+By:                            	Kartikeya Menon (55),   Anubhuti Singh(24),    Aman Tandon(23) 
+Registration no:        	11906926                          11907078                       11906912
+
+Course:                     	Python Programming (INT 213)
+Team No.                   	9
+Submitted to:           	Pooja Rana
+Section:                     	K19AW
+Semester:                 	III
+Online Assignment: 	1 
+Date:                         	27th Oct, 2020    
+
+Our program uses Python language with modules like tkinter, tkcalendar, csv, mysql.connector, etc.
+We had to work on GUI using Tkinter for front-end and database using MySQL for back-end.
+
+This program:
+    A. Helps user to enter, view and edit details of address book.
+    B. Give information by printing out the list of contacts.
+
+Some of the functionalities of our program:
+    1. Help user keep all the contact details in an organized way in database.
+    2. User can also export the data from contact database to .csv file locally
+    3. The core of the program is a procedural programming algorithm (instead of object-oriented programming) 
+        using several functions defined in code, that allows user to save, delete and update the contacts.
+    4. User can make groups,
+	 can change theme color according to their taste,
+	 and can even delete entire contacts if they want to.
+    5. Our program works on every details like, there is a pop-up messagebox if user has left the first name entry field blank.
+    6. First name field is compulsory to enter as it is what we use to search contacts.
+    7. User is allowed to enter phone number not only in digits, i.e. also with characters such as "+1-234-234-3212 ". 
+        This way, our interface makes user enter phone number in any format they wish.
