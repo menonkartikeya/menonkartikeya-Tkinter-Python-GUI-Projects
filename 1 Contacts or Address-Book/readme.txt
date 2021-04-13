@@ -1,4 +1,4 @@
-In the folder "Contacts Address Book": Open 'index.py' and run.
+In the folder "Contacts - menonkartikeya": Open 'index.py' and run.
 Have a play around with it. All the functionalities are easy to understand. 
 
 The subfolder "Icons" contains all the necessary icons used in this project. 
