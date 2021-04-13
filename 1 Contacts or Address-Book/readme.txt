@@ -11,4 +11,5 @@ One can also export contacts from their database to a .csv file using "export co
 
 The file "info.py" is used here for defining the functions of (and accessing the) "info" option from menubar.
 
+To know more, read "about.txt".
 **************************************************menonkartikeya**************************************************************
