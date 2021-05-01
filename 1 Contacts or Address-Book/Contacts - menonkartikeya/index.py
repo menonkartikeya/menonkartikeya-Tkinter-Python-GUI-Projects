@@ -38,6 +38,11 @@ mycursor.execute("CREATE TABLE IF NOT EXISTS contactsdata (_id integer PRIMARY K
 #Only 5 Datatypes in sqlite: text, int, real(decimal), null (does/doesnt exists), blob (image, video,etc.)
 mydb.commit()
 
+
+
+
+
+
 mycursor=mydb.cursor()
 mycursor.execute("CREATE TABLE IF NOT EXISTS grouplist (_id integer PRIMARY KEY,\
                  group_name text,\
@@ -55,9 +60,30 @@ if not result:
         mycursor.executemany("INSERT INTO grouplist (group_name,extra_id) VALUES (?,?)",val) #sqlite3 syntax: ? instead of %s
         mydb.commit()
 
+
+
+
+
+mycursor=mydb.cursor()
+mycursor.execute("CREATE TABLE IF NOT EXISTS ColorTheme (_id integer PRIMARY KEY,\
+                 themename text,\
+                 colornames text)")
+mydb.commit()
+default_colors = ('#474747','#e0e0e0', '#474747')
+result = mycursor.execute("SELECT * FROM ColorTheme WHERE _id = 1") #Without this and the next if not statement, the rows will be added everytime this program is run
+result = mycursor.fetchall()
+if not result:
+        mycursor.execute("INSERT INTO ColorTheme (themename,colornames) VALUES (?,?)",('  Default',' '.join(default_colors),)) #sqlite3 syntax: ? instead of %s
+        mydb.commit()        
+
+      
+      
+      
+      
+      
 def refresh():
-        main_application.destroy()
-        mainapplication()
+    main_application.destroy()
+    mainapplication()
         
 def mainapplication():
     global main_application
@@ -71,7 +97,14 @@ def mainapplication():
     main_application.iconphoto(False, main_icon)
 
     global fg_color, bg_color, text_color
-    fg_color, bg_color, text_color = '#474747','#e0e0e0', '#474747'
+    mycursor=mydb.cursor()
+    mycursor.execute("SELECT * FROM ColorTheme")
+    res = mycursor.fetchall()        #colors is a list of all rows of that table
+    Theme_Name = res[0][1]              
+    colors = res[0][2]               #we need the 2nd column of 1st row, hence [0][1]
+    colors = tuple(map(str, colors.split(' ')))         #make this string as tuple
+    fg_color, bg_color, text_color = colors[0], colors[1], colors[2]
+    
     #-------------------------------------------------------- Main menu ---------------------------------------------------
 
     main_menu=Menu()
@@ -427,11 +460,12 @@ def mainapplication():
     monokai_icon = PhotoImage(file='icons/monokai.png')
     night_blue_icon = PhotoImage(file='icons/night_blue.png')
 
-    theme_choice = StringVar() #variable to store which theme is chosen
+    theme_choice = StringVar(None, Theme_Name) #variable to store which theme is chosen 
+    
     color_icons = (default_icon, light_plus_icon, dark_icon, red_icon, monokai_icon, night_blue_icon) #using tuple
     color_dict = { #dictionary... storing bg and fg colors
         '  Default':('#474747','#e0e0e0','#474747'),
-        '  Light Blue' : ('#c4c4c4', '#CDEDF6','#black'),
+        '  Light Blue' : ('#c4c4c4', '#CDEDF6','black'),
         '  Dark' : ('#c4c4c4', '#2d2d2d','#c4c4c4'),
         '  Red' : ('#2d2d2d', '#ffe8e8','#2d2d2d'),
         '  Monokai' : ('#d3b774', '#474747','#d3b774'),
@@ -443,15 +477,17 @@ def mainapplication():
         color_tuple = color_dict.get(chosen_theme)
         global fg_color, bg_color ,text_color
         fg_color, bg_color, text_color = color_tuple[0], color_tuple[1], color_tuple[2]
-        
+                
         canvas.config(background=bg_color)
         canvas2.config(background=fg_color)
-
+        
         search_contact.config(background=bg_color,foreground=fg_color)
         edit_contact.config(background=bg_color,foreground=fg_color)
         delete_contact.config(background=bg_color,foreground=fg_color)
         clearbutton.config(background=bg_color,foreground=fg_color)
         note_text.config(background=bg_color,foreground=fg_color)
+
+        search()
 
         FirstName_label.config(background=fg_color,foreground=bg_color)
         MiddleName_label.config(background=fg_color,foreground=bg_color)
@@ -461,6 +497,10 @@ def mainapplication():
         Phone2_label.config(background=fg_color,foreground=bg_color)
         Email1_label.config(background=fg_color,foreground=bg_color)
         create_canvas2()
+        
+        mycursor=mydb.cursor()
+        mycursor.execute("UPDATE ColorTheme SET (themename,colornames) = (?,?) WHERE _id = 1",(theme_choice.get(),' '.join(color_tuple),))
+        mydb.commit()
         
     count = 0 
     for i in color_dict: #to add radiobuttons for all themes
@@ -835,7 +875,7 @@ def mainapplication():
     create_canvas2()
     
     ################################################## End of Entry display ################################################
-
+    change_theme() #calling for the updation of checkbutton in menubar as well as colors from database
     main_application.mainloop()
 
 if __name__ == "__main__":                  #To run the main program indiviually, very necessary to execute the whole application at starting
