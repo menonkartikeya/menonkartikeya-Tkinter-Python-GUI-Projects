@@ -12,29 +12,68 @@ mydb=sqlite3.connect("YouTubeLinks.db") #Also creates a database if not already 
 
 mycursor=mydb.cursor()
 mycursor.execute("CREATE TABLE IF NOT EXISTS youtubelinks (_id integer PRIMARY KEY,\
-                 video_title_with_link text)")
-#Only 5 Datatypes in sqlite: text, int, real(decimal), null (does/doesnt exists), blob (image, video,etc.)
+                 video_title_with_link text)")  #Only 5 Datatypes in sqlite: text, int, real(decimal), null (does/doesnt exists), blob (image, video,etc.)
 mydb.commit()
 
+#GUI CODE:
 root = Tk()
 root.geometry('1200x600')
 root.minsize(1200, 600)  # min width,height
 root.geometry("{}x{}+{}+{}".format(1200, 600, int((root.winfo_screenwidth() / 2) - (1200 / 2)),
-                                   int((root.winfo_screenheight() / 2) - (600 / 2))))
-
-root.title("YouTube MP3 Player")
+                                   int((root.winfo_screenheight() / 2) - (600 / 2))))   #To bring the root window in center of screen
+root.title("YouTube Player")
 main_icon = PhotoImage(file="youtube.png")
 root.iconphoto(True, main_icon)
 
 root.configure(background="white")
 
-heading1 = Label(root, text=" My YouTube MP3 PlayList\n", font=("Arial Rounded MT Bold", 26), bg='white',
-                 fg='black')
+top_frame = Frame(root,height=120)
+top_frame.pack(fill=X,side=TOP)
+top_frame.pack_propagate(0)
+top_frame.configure(background="white")
+heading1 = Label(top_frame, text=" My YouTube PlayList\n", font=("Arial Rounded MT Bold", 26), bg='white',fg='black')
 heading1.pack()
+
+#CHECKBUTTON OF ONLY AUDIO:
+audio_or_video = IntVar()    #IntVar(value=0)   : To initialize
+chkb1 = Checkbutton(top_frame, text='Audio Only', font=("Arial Rounded MT Bold", 12), variable=audio_or_video, offvalue=1, onvalue=0, compound=LEFT,bg="white") #value=0 means audio only, is by default checked
+chkb1.select()      #To by default check the checkbutton
+chkb1.place(relx=0.74, y=85, anchor='center')
+
+#TWO BUTTONS CLEAR AND CLEAR ALL:
+def clear():
+    try:
+        indexofSelectedItem = listbox.curselection() #returns only a tuple which is : (index_in_listbox,)    Hence, only using here to handle exception. See its use in next 3rd line.
+        index = listbox.get(ACTIVE)     #returns entire tuple which is : (index_in_listbox,)
+        mycursor = mydb.cursor()
+        mycursor.execute("SELECT * FROM youtubelinks WHERE _id = ?", (indexofSelectedItem[0],)) #Just using for raising exception , this raises error when nothing is selected. Hence "except" block.
+##        option = messagebox.askyesno("Caution!", "Pressing Yes Will Delete It From Your Record")
+##        if option:
+        mycursor.execute("DELETE FROM youtubelinks WHERE video_title_with_link = ?",(index,))
+        mydb.commit()
+        listbox.delete(ANCHOR)  #to delete the selected item from listbox
+    except:
+        messagebox.showerror("Error", "Select a Link To Delete")
+    
+def clearAll():
+    option = messagebox.askyesno("Caution!", "Pressing Yes Will Delete All Your Records")
+    if option:
+        mycursor = mydb.cursor()
+        mycursor.execute("DELETE FROM youtubelinks") #not truncate, unlike MySQL
+        mydb.commit()
+        listbox.delete(0,END)   #to delete all items from listbox
+        messagebox.showinfo("Deleted!", "All Records Deleted successfully ")
+    
+button2 = Button(top_frame, text="Clear", command=clear, compound="center", bg="white",width=10,font=("Calibri", 12), fg="black", cursor="hand2",activebackground='white')
+button2.place(relx=0.85, y=85, anchor='center')
+
+button3 = Button(top_frame, text="Clear All", command=clearAll, compound="center", bg="white",width=10,font=("Calibri", 12), fg="black", cursor="hand2", activebackground='white')
+button3.place(relx=0.95, y=85, anchor='center')
 
 main_icon = PhotoImage(file='youtube.png')
 main_icon_label = Label(root, image=main_icon, bg='white')
-main_icon_label.pack()
+main_icon_label.place(relx=0.15, y=180, anchor='center')
+#TOP FRAME Ends
 
 
 
@@ -42,7 +81,6 @@ heading2 = Label(root,
                  text="Enter the YouTube Link",
                  font=("Helvetica 18 bold"), bg='white', fg='black')
 heading2.place(relx=0.15, y=290, anchor='center')
-
 
 url=StringVar()
 
@@ -55,92 +93,99 @@ def start_video(event):
     index = listbox.curselection()
     movie_name = listbox.get(index).split('LinkStartsFromHere$')[1]
 
-    ydl = youtube_dl.YoutubeDL({'outtmpl': '%(id)s%(ext)s'})
-    # Add all the available extractors
-    ydl.add_default_info_extractors()
-    result = ydl.extract_info(movie_name,download=False) # We just want to extract the info
-    for format in result['formats']:
-      if format['ext'] == 'm4a':
-        audio_url = format['url']
-    #print(audio_url)
+    try:
+        if (audio_or_video.get() == 0):
+            ydl = youtube_dl.YoutubeDL({'outtmpl': '%(id)s%(ext)s'})
+            # Add all the available extractors
+            ydl.add_default_info_extractors()
+            result = ydl.extract_info(movie_name,download=False) # We just want to extract the info
+            for format in result['formats']:
+              if format['ext'] == 'm4a':
+                audio_url = format['url']
+            #print(audio_url)
 
-    player = vlc.MediaPlayer(audio_url)
-
-#Code for playing/streaming mp4 video :
-##    video = pafy.new(movie_name) #instance of pafy to extract that YouTube video
-##
-##    best = video.getbest()  #best quality of that video will be extracted
-##
-##    playurl = best.url
-##
-##    instance=vlc.Instance()
-##    player=instance.media_player_new()
-##    media=instance.media_new(playurl)
-##    
-##    media.get_mrl() #media resource locator
-##    player.set_media(media)
-    player.play()
-    player.toggle_fullscreen()
-
-    Fenetre = Tk()  #French for 'window'
-
-    def play1():
-        B1.configure(text="Pause", command=pause1)
+            player = vlc.MediaPlayer(audio_url)
+        
+        elif(audio_or_video.get() == 1):    #Code for playing/streaming mp4 video :
+        
+            video = pafy.new(movie_name) #instance of pafy to extract that YouTube video
+            best = video.getbest()  #best quality of that video will be extracted
+            playurl = best.url
+        
+            instance=vlc.Instance()
+            player=instance.media_player_new()
+            media=instance.media_new(playurl)
+            
+            media.get_mrl() #media resource locator
+            player.set_media(media)
+        
         player.play()
-    def pause1():
-        B1.configure(text=" Play", command=play1)
-        player.pause()
-    def forwd1():
-        value = player.get_length()/1000
-        percent = 1000/value
-        player.set_position(player.get_position() + (percent/100))
-    def bacwd1():
-        value = player.get_length()/1000
-        percent = 1000/value
-        player.set_position(player.get_position() - (percent/100))
-    def volUP():
-        player.audio_set_volume(player.audio_get_volume() + 10)
-    def volDN():
-        player.audio_set_volume(player.audio_get_volume() - 10)
-    def stop1():
-        player.stop()
-        Fenetre.destroy()
-        
-    Fenetre.attributes("-topmost", True)
-    Fenetre.overrideredirect(True) #Remove border
+        player.toggle_fullscreen()
 
-    grip = Button(Fenetre,bitmap="gray25", width = 40)
-    grip.pack()
-    B1 = Button(Fenetre, text="Pause", command=pause1, width = 5)
-    B1.pack()
-    B2 = Button(Fenetre, text=" +10s ", command=forwd1, width = 5)
-    B2.pack()
-    B3 = Button(Fenetre, text=" -10s ", command=bacwd1, width = 5)
-    B3.pack()
-    B4 = Button(Fenetre, text=" Vol+ ", command=volUP, width = 5)
-    B4.pack()
-    B5 = Button(Fenetre, text=" Vol- ", command=volDN, width = 5)
-    B5.pack()
-    B6 = Button(Fenetre, text=" Exit", command=stop1, width = 5)
-    B6.pack()
+        Fenetre = Tk()  #Fenetre is French for 'window'
 
-    #Functions to make fenetre movable
+        def play1():
+            B1.configure(text="Pause", command=pause1)
+            player.play()
+        def pause1():
+            B1.configure(text=" Play", command=play1)
+            player.pause()
+        def forwd1():
+            value = player.get_length()/1000
+            percent = 1000/value
+            player.set_position(player.get_position() + (percent/100))
+        def bacwd1():
+            value = player.get_length()/1000
+            percent = 1000/value
+            player.set_position(player.get_position() - (percent/100))
+        def volUP():
+            player.audio_set_volume(player.audio_get_volume() + 10)
+        def volDN():
+            player.audio_set_volume(player.audio_get_volume() - 10)
+        def stop1():
+            player.stop()
+            Fenetre.destroy()
+            
+        Fenetre.attributes("-topmost", True)
+        Fenetre.overrideredirect(True) #Remove border
 
-    def do_move(event):
-        Fenetre.geometry(f'+{event.x_root}+{event.y_root}')
+        grip = Button(Fenetre,bitmap="gray25", width = 40)
+        grip.pack()
+        B1 = Button(Fenetre, text="Pause", command=pause1, width = 5)
+        B1.pack()
+        B2 = Button(Fenetre, text=" +10s ", command=forwd1, width = 5)
+        B2.pack()
+        B3 = Button(Fenetre, text=" -10s ", command=bacwd1, width = 5)
+        B3.pack()
+        B4 = Button(Fenetre, text=" Vol+ ", command=volUP, width = 5)
+        B4.pack()
+        B5 = Button(Fenetre, text=" Vol- ", command=volDN, width = 5)
+        B5.pack()
+        B6 = Button(Fenetre, text=" Exit", command=stop1, width = 5)
+        B6.pack()
 
-    grip.bind("<B1-Motion>", do_move)
+        #Functions to make fenetre movable
 
-##    if(not player.is_playing()):
-##        Fenetre.destroy()
-        
-    #Don't use time.sleep() with tkinter. Instead, call the function after on the widget you want to close.
-    #Fenetre.after(video.length*1000,lambda: Fenetre.destroy())
+        def do_move(event):
+            Fenetre.geometry(f'+{event.x_root}+{event.y_root}')
 
-    Fenetre.mainloop()
+        grip.bind("<B1-Motion>", do_move)
 
-##    time.sleep(video.length)
-##    player.stop()
+    ##    if(not player.is_playing()):
+    ##        Fenetre.destroy()
+            
+        #Don't use time.sleep() with tkinter. Instead, call the function after on the widget you want to close.
+        #Fenetre.after(video.length*1000,lambda: Fenetre.destroy())
+
+        Fenetre.mainloop()
+
+    ##    time.sleep(video.length)
+    ##    player.stop()
+
+    except:
+        messagebox.showerror("Error", "Please Check Your Internet Connection")
+        root.focus_force()
+        URLEntryBox.focus()
 
     
 listbox = Listbox(root, width=130,exportselection=0)    #When set to 0, the selection won't change just because another widget gets some or all of its data selected.
@@ -150,15 +195,15 @@ mycursor = mydb.cursor()
 mycursor.execute("SELECT * FROM youtubelinks")
 result=mycursor.fetchall()
 for x in result:
-    listbox.insert(END, x[1])   #Just x in place of x[1] will also give S.No.
+    listbox.insert(END, "   " + x[1])   #Just x in place of x[1] will also give S.No.
 
 scrollbar = Scrollbar(root, orient="vertical")
 scrollbar.pack(side = RIGHT, fill = BOTH)
 listbox.config(yscrollcommand = scrollbar.set)
 scrollbar.config(command = listbox.yview)
 
+#listbox.bind("<Button>", start_video)  #very annoying since before select and then clear, the media plays, so double click is better
 listbox.bind("<Double-Button>", start_video)
-#listbox.bind("<Button>", start_video)
 listbox.bind('<FocusOut>', lambda e: listbox.selection_clear(0, END)) #To deselect the selected item by clicking at entry box or any widget outside outside the listbox
 
 def submit():
@@ -196,40 +241,6 @@ button1 = Button(root, text="Add to PlayList", command=submit, compound="center"
                  font=("Calibri", 20), fg="black", cursor="hand2", image = add_btn, activebackground='white',
              borderwidth = 0)
 button1.place(relx=0.15, y=400, anchor='center')
-
-#TWO BUTTONS CLEAR AND CLEAR ALL:
-def clear():
-    try:
-        indexofSelectedItem = listbox.curselection() #returns only a tuple which is : (index_in_listbox,)    Hence, only using here to handle exception. See its use in next 3rd line.
-        index = listbox.get(ACTIVE)     #returns entire tuple which is : (index_in_listbox,)
-        mycursor = mydb.cursor()
-        mycursor.execute("SELECT * FROM youtubelinks WHERE _id = ?", (indexofSelectedItem[0],)) #Just using for raising exception , this raises error when nothing is selected. Hence "except" block.
-##        option = messagebox.askyesno("Caution!", "Pressing Yes Will Delete It From Your Record")
-##        if option:
-        mycursor.execute("DELETE FROM youtubelinks WHERE video_title_with_link = ?",(index,))
-        mydb.commit()
-        listbox.delete(ANCHOR)  #to delete the selected item from listbox
-    except:
-        messagebox.showerror("Error", "Select a Link To Delete")
-        
-    
-def clearAll():
-    option = messagebox.askyesno("Caution!", "Pressing Yes Will Delete All Your Records")
-    if option:
-        mycursor = mydb.cursor()
-        mycursor.execute("DELETE FROM youtubelinks") #not truncate, unlike MySQL
-        mydb.commit()
-        listbox.delete(0,END)   #to delete all items from listbox
-        messagebox.showinfo("Deleted!", "All Records Deleted successfully ")
-    
-    
-button2 = Button(root, text="Clear", command=clear, compound="center", bg="white",width=10,
-                 font=("Calibri", 12), fg="black", cursor="hand2",activebackground='white')
-button2.place(relx=0.85, y=180, anchor='center')
-
-button3 = Button(root, text="Clear All", command=clearAll, compound="center", bg="white",width=10,
-                 font=("Calibri", 12), fg="black", cursor="hand2", activebackground='white')
-button3.place(relx=0.95, y=180, anchor='center')
 
 root.mainloop()
 
