@@ -1,4 +1,11 @@
-Python Packages:
+If you want to just run and use this project:
+Download the "executable" of this project, i.e. download and run YouTubePlayer.exe on your PC.
+Another file called YouTubeLinks.db will be created when you run it, it will contain the data of playlist that you made.
+
+
+For developers:
+
+Python Packages used:
 	pafy	                to extract that Youtube video		                              pip install pafy
 	youtube-dl	        for pafy to work with converting mp4 link into mp3          	      pip install youtube-dl
 	vlc	                to play the audio                                             	      pip install python-vlc
