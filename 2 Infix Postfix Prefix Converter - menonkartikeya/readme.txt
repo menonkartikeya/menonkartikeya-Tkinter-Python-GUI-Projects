@@ -1,3 +1,10 @@
+If you want to just run and use this project:
+Download the "executable" of this project, i.e. download and run PrefixInfixPostfix.exe on your PC.
+
+
+
+For developers:
+
 In this folder: Open 'PrefixInfixPostfix.py' and run.
 All the functionalities are easy to understand. 
 
