@@ -16,13 +16,13 @@ root.maxsize(600, 500)
 root.geometry("{}x{}+{}+{}".format(600, 500, int((root.winfo_screenwidth() / 2) - (600 / 2)),
                                    int((root.winfo_screenheight() / 2) - (500 / 2))))
 
-root.title("Postfix to Infix Converter")
+root.title("Prefix Infix Postfix Converter")
 main_icon = PhotoImage(file="calculator3.png")
 root.iconphoto(True, main_icon)
 
 root.configure(background="white")
 
-heading1 = Label(root, text=" Postfix to Infix Converter\n", font=("Arial Rounded MT Bold", 26), bg='white',
+heading1 = Label(root, text=" Prefix-Infix-Postfix Converter\n", font=("Arial Rounded MT Bold", 26), bg='white',
                  fg='black')
 heading1.pack()
 
@@ -62,6 +62,7 @@ Exp=StringVar()
 
 ExpressionEntryBox=Entry(root, bd=1,relief="solid", textvariable=Exp)
 ExpressionEntryBox.place(relx=0.50, y=330, anchor='center')
+
 
 global color_prev;
 color_prev= 'lightcyan';
