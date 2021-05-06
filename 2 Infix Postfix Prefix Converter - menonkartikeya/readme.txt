@@ -2,6 +2,9 @@ If you want to just run and use this project:
 Download the "executable" of this project, i.e. download and run PrefixInfixPostfix.exe on your PC.
 
 
+This app changes entire background color everytime something is calculated. 
+(Added this feature just to make the app a little more fun and a little less boring.)
+
 
 For developers:
 
