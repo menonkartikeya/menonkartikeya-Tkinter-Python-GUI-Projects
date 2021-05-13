@@ -47,9 +47,10 @@ For Videos:
 
 ->This would require manual work, so psycologically user won't again and again listen to songs continously.
   <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Instead, will exit after a while.	(YOU HAVE TO CLICK ON "EXIT")
+
 ->Hence the urge to listen to a song or the purpose of listening to a podcast or watching a video is fulfilled as well as a longer distraction (of surfing around on YouTube) is shortened.
 
 "Icon made by Freepik from www.flaticon.com"
-Special thanks to Bryan Oakley on StackOverflow.com. His solutions have helped me a lot.
+<br>Special thanks to Bryan Oakley on StackOverflow.com. His solutions have helped me a lot.
 
 <h6>**************************************************menonkartikeya**************************************************************</h6>
