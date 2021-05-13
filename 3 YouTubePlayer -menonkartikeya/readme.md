@@ -1,19 +1,21 @@
 If you want to just run and use this project:
-Download the "executable" of this project, i.e. download and run YouTubePlayer.exe on your PC.
-Another file called YouTubeLinks.db will be created when you run it, it will contain the data of playlist that you made.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Download the "executable" of this project, i.e. download and run YouTubePlayer.exe on your PC.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Another file called YouTubeLinks.db will be created when you run it, it will contain the data of playlist that you made.
 
 
-For developers:
+<h2>FOR DEVELOPERS:</h2>
 
 Python Packages used:
-	pafy	                to extract that Youtube video		                              pip install pafy
+
+	pafy	                to extract that Youtube video		                              pip install pafy	
 	youtube-dl	        for pafy to work with converting mp4 link into mp3          	      pip install youtube-dl
 	vlc	                to play the audio                                             	      pip install python-vlc
-  And of course, tkinter and sqlite3
+	
+	And of course, tkinter and sqlite3
 
 
 
-****THE CONCEPT****
+<h2>THE CONCEPT:</h2>
 
 Sometimes, don't you feel like listening to a song but then after you play it on YouTube,
 you get busy in watching the video.
@@ -34,20 +36,20 @@ First thing First, User needs to have a good internet connection.
 The player (controller) window size is so compact and that you can just drag and drop it anywhere on screen. Click "Exit" button to stop the audio playing as well as close itself.
 
 For Audio only purpose:
-	->Stream songs, podcasts from YouTube, less distractingly.
-	->Listen to one audio once, then exit
-	->If want to listen more, select another audio.
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->Stream songs, podcasts from YouTube, less distractingly.
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->Listen to one audio once, then exit
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->If want to listen more, select another audio.
 
 For Videos:
-	->Stream the video from YouTube, in full screen mode.
-	->Watch that video only once, then exit.
-	->If want to rewatch or watch other videos, select the link again from playlist.
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->Stream the video from YouTube, in full screen mode.
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->Watch that video only once, then exit.
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->If want to rewatch or watch other videos, select the link again from playlist.
 
 ->This would require manual work, so psycologically user won't again and again listen to songs continously.
-  Instead, will exit after a while.	(YOU HAVE TO CLICK ON "EXIT")
+  <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Instead, will exit after a while.	(YOU HAVE TO CLICK ON "EXIT")
 ->Hence the urge to listen to a song or the purpose of listening to a podcast or watching a video is fulfilled as well as a longer distraction (of surfing around on YouTube) is shortened.
 
 "Icon made by Freepik from www.flaticon.com"
 Special thanks to Bryan Oakley on StackOverflow.com. His solutions have helped me a lot.
 
-**************************************************menonkartikeya**************************************************************
+<h6>**************************************************menonkartikeya**************************************************************</h6>
