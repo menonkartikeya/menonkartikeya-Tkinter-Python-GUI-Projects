@@ -9,9 +9,9 @@ Python Packages used:
 
 	pafy	                to extract that Youtube video		                              pip install pafy	
 	youtube-dl	        for pafy to work with converting mp4 link into mp3          	      pip install youtube-dl
-	vlc	                to play the audio                                             	      pip install python-vlc
+	vlc	                to play the audio / video                                             pip install python-vlc
 	
-	And of course, tkinter and sqlite3
+	And of course, tkinter and sqlite3 for front-end and back-end, respectively.
 
 
 
