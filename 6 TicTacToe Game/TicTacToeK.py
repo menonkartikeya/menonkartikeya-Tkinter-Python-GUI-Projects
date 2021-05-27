@@ -266,24 +266,44 @@ def reset():
 
 def oneplayer():
     try:
+        global clicked, count, AI
+
+        if count!=0:
+            raise TypeError("Please Complete or Reset")
+        
         messagebox.showinfo("Tic Tac Toe", "You are X. The Computer is O")
         my_menu.delete("2 Players")
         my_menu.add_cascade(label="1 Player", menu=player_menu)
 
-        global AI
+        clicked = True
+        count=0
         AI=1
+
+    except TypeError:
+        messagebox.showerror("Tic Tac Toe", "Please Complete or Reset this game before changing")
     except:
-        messagebox.showerror("Tic Tac Toe", "Hey! It's alraedy 1 Player...")
+        messagebox.showerror("Tic Tac Toe", "Hey! It's already 1 Player...")
 
 def twoplayer():
     try:
+        global clicked, count, AI
+        if count!=0:
+            raise TypeError("Please Complete or Reset")
+        
         my_menu.delete("1 Player")
         my_menu.add_cascade(label="2 Players", menu=player_menu)
+
+        clicked = True
+        count=0
+        AI=0
+
+    except TypeError:
+        messagebox.showerror("Tic Tac Toe", "Please Complete or Reset this game before changing")        
     except:
         messagebox.showerror("Tic Tac Toe", "Hey! It's already 2 Players...")
     
-
-
+#Damn it! I could have just called reset function itself, instead of doing exception handling using TypeError and all
+#Leave it...
 
 #Menu
 my_menu = Menu(root)
