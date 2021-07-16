@@ -1,24 +1,19 @@
 from tkinter import *
 from tkinter import messagebox, filedialog
-#for ProgressBar:
+
 from tkinter import ttk         
 import urllib.request       #to get size of file from url
-import threading
-import time
 import os                   #using getsize function os.path module
 
-#for YouTube:
-import pytube
-from youtube_dl import *
+import selenium
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+import threading
 
-#for Insta:
-from bs4 import BeautifulSoup
-import os, cv2, json, requests, urllib.request
-import re
-
-bgColor = "#373737"
-textColor = 'whitesmoke'
-secondColor = "#000000"
+bgColor = 'whitesmoke'      #"#373737"
+textColor = 'black'         #'whitesmoke'
+secondColor = 'whitesmoke'  #"#000000"
 
 root = Tk()
 root.state('zoomed')   #zooms the screen to maxm whenever executed
@@ -27,240 +22,370 @@ root.minsize(1300, 780)
 root.geometry("{}x{}+{}+{}".format(1300, 780, int((root.winfo_screenwidth() / 2) - (1300 / 2)),int((root.winfo_screenheight() / 2) - (780 / 2))))
 root.title("YouTube Insta FaceBook Twitter Downloader")
 root.configure(background=bgColor)
+##root.attributes('-alpha',0.9)
 
 Label(root, text="Download Image/Video on your computer!", font=("Arial Rounded MT Bold", 26), bg=bgColor,fg=textColor).place(relx=0.5, y = 40, anchor="center")
 
-instaURL = ""
-download_Folder=""
+def download_wait(directory, timeout):
+    """
+    Wait for downloads to finish with a specified timeout.
+    """
+    seconds = 0
+    dl_wait = True
+    while dl_wait and seconds < timeout:
+        time.sleep(4)
+        dl_wait = False
+        files = os.listdir(directory)
+        for fname in files:
+            if fname.endswith('.crdownload') or (('crdownload') in fname):
+                dl_wait = True
 
-def Download():
-##    global videoStream, download_Folder, fileDownloading, link
-    print(sourceOfMedia.get())
-    print(v.get())
+        seconds += 1
+    return seconds
 
-    link = LinkVar.get()
-    print(link)
+import urllib.request
+import glob
+from moviepy.editor import *
 
-    
-    global instaURL , download_Folder
-    instaURL = link
-    download_Folder = download_Path.get()
+def downloadit():
+    global srcMedia, audVid, link, download_Folder, dwn_thread, driver, flag   
     print(download_Folder)
-    if download_Folder == '(optional)':
-        download_Folder = ''
+    if srcMedia == 1:
+        if link.find('youtube') == -1:
+            messagebox.showerror("The link is incorrect!", "Invalid Youtube video url. Please try again.")
+            return
+    elif srcMedia == 2:
+        if link.find('instagram') == -1:
+            messagebox.showerror("The link is incorrect!", "Invalid Instagram video url. Please try again.")
+            return
+    elif srcMedia == 3:
+        if link.find('facebook') == -1:
+            messagebox.showerror("The link is incorrect!", "Invalid FaceBook video url. Please try again.")
+            return
+    elif srcMedia == 4:
+        if link.find('twitter') == -1:
+            messagebox.showerror("The link is incorrect!", "Invalid Twitter video url. Please try again.")
+            return
 
-##    try:
-        if sourceOfMedia.get() == 1:        #YouTube
+            
+    browser = 'chrome'
+    if browser == 'chrome':
+        Options = webdriver.ChromeOptions()
+        prefs = {"profile.default_content_settings.popups": 0,
+                 "download.default_directory": download_Folder,
+                 "directory_upgrade": True}
+        Options.add_experimental_option("prefs", prefs)
 
-##            bar["value"]=0
-##            bar["maximum"] = 100
-##            global fileDownloading, videoStream, download_Folder, maxBytes, link
-            messagebox.showinfo("Please Wait", "File Is downloading")
-            getVideo = pytube.YouTube(link)
-            videoStream = getVideo.streams.first()
 
-##            maxBytes = videoStream.filesize
-            fileDownloading = videoStream.download(download_Folder)
-            
-            #After Download starts, start the progress bar:
-##            on_progress()
-            
-            messagebox.showinfo("SUCCESSFULLY", "DOWNLOADED AND SAVED AS\n" + fileDownloading)
-            
-        elif sourceOfMedia.get() == 2:        #Insta
-            
-            i_Downloader()
-            messagebox.showinfo("SUCCESSFULLY", "DOWNLOADED AND SAVED IN\n" + download_Folder)
-##    except:
-##        messagebox.showerror("Error!", "Something Went Wrong. Recheck everything and try again.")
+        Options.add_argument('headless')
+        Options.add_argument("no-sandbox")
+        Options.add_argument("disable-dev-shm-usage")
+
+    driver = webdriver.Chrome(ChromeDriverManager().install(),options=Options)
     
-##maxBytes, fileDownloading, videoStream, download_Folder = 100, 0, '', ''
+    if srcMedia == 1:        #YouTube
+        driver.get('https://yt1s.com/en9')
+        id_box = driver.find_element_by_id('s_input')
+        id_box.send_keys(link)
 
-##def on_progress():
-##    global maxBytes, fileDownloading
-##    try:
-##        bytes_downloaded = os.path.getsize(fileDownloading)
-##    except:
-##        bytes_downloaded = 0
-##    liveprogress = (int)(bytes_downloaded / maxBytes * 100)
-##    bar["value"] = liveprogress
-##    label_progress.config(text=str(liveprogress)+"%")
-##    root.update_idletasks()
-##    
-##    if liveprogress < 100:
-##        time.sleep(0.1)
-##        on_progress()
-##        
+        redBTN = driver.find_elements_by_class_name('btn-red')
+        redBTN[0].click()
+
+        time.sleep(8)
+        try:
+            search_error = driver.find_element_by_xpath("//p[contains(text(), 'Invalid Youtube video url. Please try again.')]")
+            print(search_error.text)
+            messagebox.showerror("The link is not correct!", "Invalid Youtube video url. Please try again.")
+            driver.close()
+            return
+        except:
+            print("Link OK ")
+            
+        if audVid == "audio":
+            mp3SelectBox = driver.find_element_by_xpath("//select[@id='formatSelect']/optgroup[@label='mp3']/option")
+            mp3SelectBox.click()
+                                                                    
+        getLinkBtn = driver.find_element_by_id('btn-action')
+        getLinkBtn.click()
+
+        time.sleep(8)
+        DownloadBtn = driver.find_element_by_link_text('Download')
+        DownloadBtn.click()
+        download_wait(download_Folder, 1000)
         
+    elif srcMedia == 2:        #Insta
+        driver.get('https://inflact.com/downloader/instagram/video/')
+        id_box = driver.find_element_by_id('downloaderform-url')
+        id_box.send_keys(link)
 
-def i_Downloader():
-    # Sending request to the insta_url URL & storing the response in insta_Posts
-    insta_Posts = requests.get(instaURL)
-    # Specifying the desired format of the insta_Comments using html.parser
-    # html.parser allows Python to read the components of the insta_Page
-    soup = BeautifulSoup(insta_Posts.text, 'html.parser')
-    # Finding <script> whose text matches with 'window._sharedData' using re.compile()
-    script = soup.find('script', text=re.compile('window._sharedData'))
-    # Splitting the text of <script>, 1 time at '=' and fetching the item at index 1
-    # followed by removing the ';' from the string and storing the resulting string in page_json
-    page_json = script.text.split(' = ', 1)[1].rstrip(';')
-    # Parsing the above json page_json string using json_loads() and storing the resulting
-    # dictionary in data variable which is a very long dictionary consisting of 19 items
-    data = json.loads(page_json)
-    # Storing the necessary part of the data dictionary in base_data
-    base_data = data['entry_data']['PostPage'][0]['graphql']['shortcode_media']
-    # Fetching the __typename of the POST from base_d dictionary and storing them in typename
-    typename = base_data['__typename']
+        dwnBTN = driver.find_element_by_id('search')
+        dwnBTN.click()
 
+        time.sleep(12)
+        try:
+            search_error = driver.find_elements_by_class_name('results-not-found')
+            print(search_error[0])
+            messagebox.showerror("The link is not correct!", "Invalid Instagram url. Please check the URL & try again.")
+            driver.close()
+            return
+        except:
+            print("Link OK ")
+                            
+        DownloadBtns = driver.find_elements_by_class_name('download-button')
+        print(DownloadBtns)
+        list_of_files = glob.glob(download_Folder+'*.mp4')
+        try:
+            prev_latest_file = max(list_of_files, key=os.path.getctime)
+        except:
+            prev_latest_file = "1"
+            print("NO mp4 file previously")
+            
+        for e in DownloadBtns:
+            print(e)
+            e.click()
+            sec = download_wait(download_Folder, 1000)
+            print(sec)
+            
+        if audVid == "audio":
+            list_of_files = glob.glob(download_Folder+'*.mp4')
+            try:
+                latest_file = max(list_of_files, key=os.path.getctime)
+                print(latest_file)
+                if prev_latest_file!=latest_file:
+                    video = VideoFileClip(os.path.join(download_Folder,download_Folder,latest_file))
+                    latest_file_without_extension = latest_file.rsplit('.', 1)[0]
+                    print(latest_file_without_extension) 
+                    video.audio.write_audiofile(os.path.join(download_Folder,download_Folder,latest_file_without_extension+".mp3"))
+                print("DONE")
+            except:
+                print("NOT mp4 file")
+            
+            
+            
+    elif srcMedia == 3:        #FB
+        driver.get('https://snapsave.app/')
+        id_box = driver.find_element_by_name('url')
+        id_box.send_keys(link)
 
-    # Checking if the typename is GraphImage meaning INSTAGRAM POST is a single image
-    if typename == "GraphImage":
-        # Fetching the Instagram Image URL from display_url of base_data dictionary
-        display_url = base_data['display_url']
-        # Fetching the taken_at_timestamp value from base_data dictionary and storing in filename
-        file_name = base_data['taken_at_timestamp']
-        # Concatenating download_path with filename and .jpg extension and storing in download_p
-        download_p = download_Folder + str(file_name) + ".jpg"
-        # Checking if the file already exists using the os.path.exists() method
-        if not os.path.exists(download_p):
-            # If not, then download the file using the urlretrieve() of the urlib.request module
-            # which takes the url and download_path as the arguments
-            urllib.request.urlretrieve(display_url, download_p)
-            # Opening the download_p image using the open() method of the Image module
-            image = Image.open(download_p)
-        else:
-            print("ALREADY EXISTS")
+        dwnBTN = driver.find_element_by_id('send')
+        dwnBTN.click()
 
-    # Checking if the typename is GraphVideo meaning INSTAGRAM POST is a video
-    elif typename == "GraphVideo":
-        # Fetching the Instagram Video URL from video_url of base_data dictionary
-        video_url = base_data['video_url']
-        # Fetching the taken_at_timestamp value from base_data dictionary and storing in filename
-        file_name = base_data['taken_at_timestamp']
-        # Concatenating download_path with filename and .mp4 extension and storing in download_p
-        download_p = download_Folder + str(file_name) + ".mp4"
-        # Checking if the file already exists using the os.path.exists() method
-        if not os.path.exists(download_p):
-            # If not present then download the file using the urlretrieve() of the urlib.request
-            # module which takes the url and download_path as the arguments
-            urllib.request.urlretrieve(video_url, download_p)
-            # Instead of displaying video in GUI, a frame of the video will be displayed as an icon
-            # Creating object of class VideoCapture with the video (download_p) as argument
-            vid = cv2.VideoCapture(download_p)
-            # Capturing frame by frame
-            ret, frame = vid.read()
-            # Setting the download path and a name for the frame and storing in video_icon
-            video_icon = download_path + "/Video Icons/" + str(file_name) + ".jpg"
-            # Saving the frame using the cv2.imwrite()
-            cv2.imwrite(video_icon, frame)
-        else:
-            print("HAS ALREADY BEEN DOWNLOADED")
+        time.sleep(12)
+        try:
+            search_error = driver.find_element_by_xpath("//div[contains(text(), 'Url error. Please check again')]")
+            print(search_error.text)
+            messagebox.showerror("The link is not correct!", "Invalid FaceBook url. Please check the URL & try again.")
+            driver.close()
+            return
+        except:
+            print("Link OK ")
 
+                           
+        DownloadBtns = driver.find_elements_by_xpath("//a[contains(@class, 'button is-success is-small')]")
+        print(DownloadBtns[0])
+        DownloadBtns[0].click()
 
-    # Checking if typename is GraphSidecar meaning single POST consists of many images & videos
-    elif typename == "GraphSidecar":
-        # Fetching the value from shortcode of base_data dictionary
-        shortcode = base_data['shortcode']
-        # Sending request to INSTAGRAM URL with shortcode & converting the response to json and
-        # storing the response in response
-        response = requests.get(f"https://www.instagram.com/p/" + shortcode + "/?__a=1").json()
-        # Declaring a variable named post_n and i and setting it to 1 and 0 respectively
-        post_n = 1; i = 0
-        # Interating through the edges present in the following location of response dictionary
-        for edge in response['graphql']['shortcode_media']['edge_sidecar_to_children']['edges']:
-            # Fetching the taken_at_timestamp value from base_d dictionary and storing in filename
-            file_name = response['graphql']['shortcode_media']['taken_at_timestamp']
-            # Concatenating download_path with the filename & post_n value & storing in download_p
-            download_p = download_Folder + str(file_name) + "-" + str(post_n)
-            # Checking the value of is_video which will be either True or False
-            is_video = edge['node']['is_video']
+        try:
+            iframe = driver.find_element_by_xpath("//iframe[@id='aswift_5']")
+            driver.switch_to.frame(iframe)
+            iframe2 = driver.find_element_by_xpath("//iframe[@id='ad_iframe']")
+            driver.switch_to.frame(iframe2)
+            closeAd = driver.find_element_by_xpath("//div[contains(@id, 'dismiss-button')]")
+            closeAd.click()
+            driver.switch_to.default_content()
+        except Exception as s:
+            print(s)            
+        sec = download_wait(download_Folder, 1000)
+        print(sec)
+     
+    elif srcMedia == 4:        #Twitter
+        driver.get('https://www.downloadtwittervideo.com/')
+        id_box = driver.find_element_by_name('url')
+        id_box.send_keys(link)
 
-            # If is_video is False meaning single Instagram Post consists of only multiple Images
-            if not is_video:
-                # Fetching the Image URL from display_url of edge dictionary
-                display_url = edge['node']['display_url']
-                # Concatenating the download_p value with .jpg extension
-                download_p += ".jpg"
-                # Checking if the file already exists using the os.path.exists() method
-                if not os.path.exists(download_p):
-                    # If not present then download the file using the urlretrieve() of the
-                    # urlib.request module which takes the url and download_path as the arguments
-                    urllib.request.urlretrieve(display_url, download_p)
-                    # Opening image, resizing it, & creating PhotoImage() class object to display it
-                    image = Image.open(download_p)
-                    
-                else:
-                    print(".jpg EXISTS")
+        dwnBTN = driver.find_elements_by_class_name('StartDownloadButton_text')
+        dwnBTN[0].click()
 
-            # If is_video is True meaning Instagram Post consists of VIDEO along with the image
-            else:
-                # Fetching the Video URL from video_url of edge dictionary
-                video_url = edge['node']['video_url']
-                # Concatenating the download_p value with .mp4 extension
-                download_p += ".mp4"
-                # Checking if the file already exists using the os.path.exists() method
-                if not os.path.exists(download_p):
-                    # If not present then download the file using the urlretrieve() of urlib.request
-                    # module which takes the url and download_path as the arguments
-                    urllib.request.urlretrieve(video_url, download_p)
-                    # Creating object of VideoCapture with video as argument and capturing frame by frame
-                    vid = cv2.VideoCapture(download_p)
-                    ret, frame = vid.read()
-                    # Setting the download path & name for frame & saving the frame using the cv2.imwrite()
-                    video_icon = download_path + "/Video Icons/" + str(file_name) + ".jpg"
-                    cv2.imwrite(video_icon, frame)
-                    # Opening the video_icon, resizing it, & creating PhotoImage() class object to display it
-                    icon = Image.open(video_icon)
-                    
-                else:
-                    print("EXISTS")
-            # Incrementing the post_n value by 1
-            post_n += 1
+        time.sleep(5)
+        
+        try:
+            iframe = driver.find_element_by_xpath("//iframe[@id='IframeErrorMessage']")
+            driver.switch_to.frame(iframe)
+            invalid = driver.find_element_by_xpath("//div[contains(@id, 'TitleText')]")
+            print(invalid.text)
+            messagebox.showerror("The link is not correct!", "Invalid Twitter url. Please check the URL & try again.")
+            driver.close()
+            return
+        except Exception as e:
+            print(e)
+        driver.close()                    
+        sec = download_wait(download_Folder, 1000)
+        print(sec)
+       
+    flag = True
+
+def after_dwn():
+     global srcMedia, audVid, link, download_Folder, dwn_thread, driver, flag
+     dwn_thread.join()           #waits till thread1 has completed executing
+
+     driver.quit()
+
+     if flag:
+         messagebox.showinfo("SUCCESSFULLY", "DOWNLOADED AND SAVED IN\n" + download_Folder)
+     listbox.delete(0)
+     check()
+     
+srcMedia, audVid, link, download_Folder, dwn_thread, driver, flag = '', '', '', '', '', '', False
+
+import requests
     
-sourceOfMedia = IntVar()    #IntVar(value=0)   : To initialize
+def check():
+    if q.empty():
+        root.after(2000,check)
+    else:
+        newDnld = q.get()
+        
+        global srcMedia, audVid, link, download_Folder, dwn_thread, driver, flag
+        srcMedia = newDnld.srcMedia
+        audVid = newDnld.audVid
+        link = newDnld.dnLink
+        download_Folder = newDnld.dnFolder
+
+        flag = False
+        dwn_thread = threading.Thread(target=downloadit)
+        dwn_thread.start()
+
+        metadata_thread = threading.Thread(target=after_dwn)
+        metadata_thread.start()
+        
+    
+def change_color(container=None):
+    global bgColor, textColor, secondColor
+    if container is None:
+        container = root  # set to root window
+    container.config(bg=bgColor)
+    for child in container.winfo_children():
+        if child.winfo_children():
+            change_color(child)# child has children, go through its children
+        elif (type(child) is Label) or (type(child) is Checkbutton) or (type(child) is Radiobutton) or (type(child) is Button):
+            child.config(bg=bgColor, fg=textColor,activebackground=bgColor, activeforeground=textColor)
+            if type(child) is Radiobutton:
+                child.config(selectcolor=secondColor,cursor="hand2", bg=bgColor, fg=textColor,activebackground=bgColor, activeforeground=textColor)
+            
+def changeTheme():
+    global bgColor, textColor, secondColor
+    if sourceOfMedia.get()==1:
+        bgColor='#CC2E3C'
+        textColor='whitesmoke'
+        secondColor='#FE6A77'
+    elif sourceOfMedia.get()==2:
+        bgColor='#cd486b'
+        textColor='white'
+        secondColor='#ED93C3'
+    elif sourceOfMedia.get()==3:
+        bgColor='#4A5DAA'
+        textColor='white'
+        secondColor='#A3B0E7'
+    elif sourceOfMedia.get()==4:
+        bgColor='#6BC1F4'
+        textColor='#373737'
+        secondColor='#AED7EF'
+    else:
+        bgColor='whitesmoke'
+        textColor='#373737'
+        secondColor='whitesmoke'
+    change_color()
+    root.update()
+
+from queue import Queue
+q = Queue(maxsize = 30)
+
+
+class downloadClass:
+    def __init__(self, srcMedia, audVid, dnLink, dnFolder):
+        self.srcMedia = srcMedia
+        self.audVid = audVid
+        self.dnLink = dnLink
+        self.dnFolder = dnFolder
+        
+def DownloadBTN():
+    if q.full():
+        messagebox.showerror("Limit crossed","Wait till previous downloads are finished")
+    else:
+        link = LinkVar.get()
+        try:
+            req = requests.get(link)
+        except Exception as ex:
+            messagebox.showerror("Something went wrong!", ex)
+            return
+                
+        download_Folder = download_Path.get()
+        if download_Folder == '(optional)':
+            download_Folder = os.path.dirname(os.path.realpath(__file__))
+            
+        if os.path.exists(download_Folder):
+            print("Folder exists")
+        else:
+            messagebox.showerror("No such folder exists!", "Choose a correct file destination and try again")
+            return 
+        download_Folder = download_Folder.replace("/", "\\")
+
+        newDownload = downloadClass(sourceOfMedia.get(),v.get(),link,download_Folder)
+        q.put(newDownload)
+        listbox.insert(END, "   " + newDownload.dnLink)
+        
+        
+sourceOfMedia = IntVar(root, 1)  
 
 #CHECKBUTTON OF YouTube:
 YTphoto = PhotoImage(file = "youtube.png")
 YTphoto = YTphoto.subsample(10, 10)
-chkb1 = Checkbutton(root, text='YouTube', image=YTphoto, font=("Arial Rounded MT Bold", 16), variable=sourceOfMedia, bg=bgColor,fg=textColor,  activebackground=bgColor, activeforeground=textColor, selectcolor=bgColor, offvalue=0, onvalue=1, compound=LEFT) #value=1 means selected, is by default checked
-chkb1.select()              #To by default check the checkbutton
-chkb1.place(relx=0.20, y=185, anchor='center')
+chkb1 = Radiobutton(root, width=60, image=YTphoto,compound="center", font=("Arial Rounded MT Bold", 16),indicator=0, variable=sourceOfMedia, value=1, command=changeTheme) #value=1 means selected, is by default checked
+##chkb1.select()              #To by default check the checkbutton
+chkb1.place(relx=0.43, y=185, anchor='center')
 
 #CHECKBUTTON OF Insta:
 Instaphoto = PhotoImage(file = "instagram.png")
 Instaphoto = Instaphoto.subsample(10, 10)
-chkb1 = Checkbutton(root, text='Instagram', image=Instaphoto, font=("Arial Rounded MT Bold", 16), variable=sourceOfMedia, bg=bgColor,fg=textColor,  activebackground=bgColor, activeforeground=textColor, selectcolor=bgColor, offvalue=0, onvalue=2, compound=LEFT) 
-chkb1.place(relx=0.40, y=185, anchor='center')
+chkb1 = Radiobutton(root, width=60, image=Instaphoto, compound="center",font=("Arial Rounded MT Bold", 16) ,indicator=0, variable=sourceOfMedia, value=2, command=changeTheme) 
+chkb1.place(relx=0.48, y=185, anchor='center')
 
 #CHECKBUTTON OF FaceBook:
 FBphoto = PhotoImage(file = "facebook.png")
 FBphoto = FBphoto.subsample(10, 10)
-chkb1 = Checkbutton(root, text='FaceBook', image=FBphoto, font=("Arial Rounded MT Bold", 16), variable=sourceOfMedia, bg=bgColor,fg=textColor,  activebackground=bgColor, activeforeground=textColor, selectcolor=bgColor, offvalue=0, onvalue=3, compound=LEFT) 
-chkb1.place(relx=0.60, y=185, anchor='center')
+chkb1 = Radiobutton(root, width=60, image=FBphoto,compound="center", font=("Arial Rounded MT Bold", 16),indicator=0, variable=sourceOfMedia,  value=3, command=changeTheme) 
+chkb1.place(relx=0.53, y=185, anchor='center')
 
 #CHECKBUTTON OF Twitter:
 Twitterphoto = PhotoImage(file = "twitter.png")
 Twitterphoto = Twitterphoto.subsample(10, 10)
-chkb1 = Checkbutton(root, text='Twitter', image=Twitterphoto, font=("Arial Rounded MT Bold", 16), variable=sourceOfMedia, bg=bgColor,fg=textColor,  activebackground=bgColor, activeforeground=textColor, selectcolor=bgColor, offvalue=0, onvalue=4, compound=LEFT) 
-chkb1.place(relx=0.80, y=185, anchor='center')
+chkb1 = Radiobutton(root, width=60, image=Twitterphoto,compound="center", font=("Arial Rounded MT Bold", 16),indicator=0, variable=sourceOfMedia, value=4, command=changeTheme) 
+chkb1.place(relx=0.58, y=185, anchor='center')
 
 
 #RadioButtons for Audio or Video Format:
 Label(root, text="Choose Format", font=("Arial Rounded MT Bold", 14), bg=bgColor,fg=textColor).place(relx=0.5, y = 250, anchor="center")
 
 v = StringVar(root, "audio")
-Radiobutton(root, text = "Audio", variable = v, value = "audio", indicator = 0, background = "#808080", padx=40).place(relx=0.46, y = 300, anchor="center")
-Radiobutton(root, text = "Video", variable = v, value = "video", indicator = 0, background = "#808080", padx=40).place(relx=0.54, y = 300, anchor="center")
+Radiobutton(root, text = "Audio", variable = v, value = "audio", indicator = 0, padx=40).place(relx=0.46, y = 300, anchor="center")
+Radiobutton(root, text = "Video", variable = v, value = "video", indicator = 0, padx=40).place(relx=0.54, y = 300, anchor="center")
 
 
 
 LinkVar=StringVar(root)
 
-
-Label(root,text="Enter Key Value:", font=("Arial Rounded MT Bold", 16),bg=bgColor,fg=textColor).place(relx=0.50, y = 410, anchor="center")
-keyEntry = Entry(root,font=("Helvetica",18),bd=1,relief="solid",bg=textColor,fg=bgColor, width=60, textvariable=LinkVar) 
+import pyperclip as pc
+def Paste():
+    linkInClipBoard= pc.paste()
+    keyEntry.delete(0,END)
+    keyEntry.insert(0,linkInClipBoard)
+    
+Label(root,text="Enter URL:", font=("Arial Rounded MT Bold", 16),bg=bgColor,fg=textColor).place(relx=0.50, y = 370, anchor="center")
+keyEntry = Entry(root,font=("Helvetica",18),bd=1,relief="solid", width=60, textvariable=LinkVar) #,bg=bgColor,fg=textColors
 keyEntry.place(relx=0.50, y = 410, anchor="center")
 keyEntry.focus()
+
+Button(root, text="Paste", command=Paste, compound="center", bg=bgColor,font=("Calibri", 10), fg=textColor, cursor="hand2").place(relx=0.77, y = 410, anchor="center")
 
 #Destination:
 download_Path = StringVar()
@@ -271,6 +396,7 @@ def Browse():
 destination_label = Label(root, text="Destination    :", bg=bgColor, fg=textColor).place(relx=0.25, y = 450, anchor="center")
 destinationText = Entry(root, width=90, textvariable=download_Path)
 destinationText.place(relx=0.50, y = 450, anchor="center")
+
 def focusIn(*args):
     destinationText.delete(0, 'end')
 def focusOut(*args):    
@@ -284,16 +410,27 @@ destinationText.bind("<FocusOut>", focusOut)
 
 browse_B = Button(root, text="Browse", command=Browse,width=10, bg=bgColor, fg=textColor).place(relx=0.75, y = 450, anchor="center")
 
-Button(root, text="Download", command=Download, compound="center", bg=secondColor,font=("Calibri", 14), fg=textColor, cursor="hand2").place(relx=0.50, y = 550, anchor="center")
+Button(root, text="Download", command=DownloadBTN, compound="center", bg=bgColor,font=("Calibri", 14), fg=textColor, cursor="hand2").place(relx=0.50, y = 550, anchor="center")
 
 
 
-#Progress Bar:
-bar= ttk.Progressbar(root, orient=HORIZONTAL, length=300, mode="determinate")
-bar.place(relx=0.45, y = 610, anchor="center")
+#ListBox Frame:
+f = Frame(root)
+f.place(relx=0.50, y = 610, anchor="n")
 
-label_progress = Label(root, font='arial 11 bold', fg=textColor, bg=bgColor)
-label_progress.place(relx=0.60, y = 610, anchor="center")
+listbox = Listbox(f, width=130, height=5, exportselection=0)    #When set to 0, the selection won't change just because another widget gets some or all of its data selected.
+listbox.pack(side = LEFT, fill = Y)
+
+scrollbar = Scrollbar(f, orient="vertical")
+scrollbar.pack(side = LEFT, fill = BOTH)
+listbox.config(yscrollcommand = scrollbar.set)
+scrollbar.config(command = listbox.yview)
+
+listbox.bind('<FocusOut>', lambda e: listbox.selection_clear(0, END)) #To deselect the selected item by clicking at entry box or any widget outside outside the listbox
 
 
+
+
+changeTheme()
+check()
 root.mainloop()
