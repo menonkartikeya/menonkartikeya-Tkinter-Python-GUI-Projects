@@ -1,0 +1,8 @@
+[["Horoscopes accurately predict future events 85% of the time.", "false"], 
+["Liberace was a notorious womanizer. ", "false"],
+["Light travels in a straight line.", "true"],
+["Electrons move faster than the speed of light.", "false"],
+["The Mona Liza was stolen from the Louvre in 1911.", "true"],
+["Peanuts are not nuts!","true"],
+["Muddy York is a nickname for New York in the Winter.","false"],
+["Emus can't fly.","true"]]
